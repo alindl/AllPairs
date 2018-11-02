@@ -9,9 +9,13 @@ args = parser.parse_args()
 # print(args.input_file)
 # print(args.jaccard_threshold)
 
+reading_time = time.process_time()
 
 
 
+
+cpu_time = time.process_time() - reading_time
 sum_results = 1
 print(sum_results)
-print(time.process_time())
+print(cpu_time)
+
