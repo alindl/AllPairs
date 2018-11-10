@@ -13,6 +13,11 @@ if __name__ == '__main__':
     parser.add_argument('jaccard_threshold', default=0.5, type=float)
     args = parser.parse_args()
 
+    # required since lists cannot be dictionary keys. M defined as dictionary
+    # string -> counter.
+    # string_to_list maps the Strings to lists.
+    # Use in verify: get String from M -> get list from string_to_list
+    # -> use list normally.
     string_to_list = {}
 
     with open(args.input_file,'r') as input_file:
@@ -26,10 +31,12 @@ if __name__ == '__main__':
         I = [[0, []] for _ in range(max_number)]
 
         for line in full_file:
+
             # M_dict = {} # Key: candidate, Value: number of intersecting tokens found so far
             M = {}
 
             # text line to array
+            # TODO: read before algorithm starts
             r = [int(x) for x in line.split()]
             string_to_list[line] = r
 
@@ -74,7 +81,6 @@ if __name__ == '__main__':
                 # I_r[p] = I_r[p] o r # Add set r to index
                 I[r[p]][1].append(r)
 
-            print(len(M))
             # Verify
             # WATCH OUT: M contains s as string. Lookup in string_to_list returns
             # required list
