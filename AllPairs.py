@@ -6,6 +6,59 @@ import time
 def eqo(r,s,t):
     return ((t /(1+t))*(len(r.split()) + len(s.split())))
 
+# WATCH OUT: M contains s as string. Lookup in string_to_list returns
+# required list
+def verify(r, M, t_j):
+
+    res = []
+    # Key = list as a String, value = overlap
+    for key, olap in M.items():
+        # Initialize ret
+        ret = None
+        # Get list from stored String value
+        s = string_to_list.get(key)
+        pi_s = len(s) - math.ceil(lb_r) + 1
+        # w_r - last token of r-prefix
+        w_r = r[pi_r - 1]
+        # w_s - last token of s-prefix
+        w_s = s[pi_s - 1]
+        t = eqo(r, s, t_j)
+        # Check which last token is larger
+        # TODO pi_r + 1, olap + 1?
+        if w_r < w_s:
+            ret = ssjoin_verify(r, s, t, olap, pi_r + 1, olap + 1)
+        else:
+            ret = ssjoin_verify(r, s, t, olap, olap + 1, pi_s + 1)
+        if ret:
+            # TODO union
+            res = r.union(s)
+    return res
+
+
+def ssjoin_verify(r, s, t, olap, p_r, p_s):
+
+    # max_r - max potential r-overlap
+    # max-s - max potential s-overlap
+    max_r = len(r) - p_r + olap
+    max_s = len(s) - p_s + olap
+
+    while max_r >= t & max_s >= t & olap < t:
+        # If there is a match, increase overlap and move to next token
+        if r[p_r] == s[p_s]:
+            r += 1
+            s += 1
+            olap += 1
+        # Decrease max possible overlap for r, go to next r-token
+        elif r[p_r] < s[p_s]:
+            p_r += 1
+            max_r -= 1
+        # Decrease max possible overlap for s, go to next s-token
+        else:
+            p_s += 1
+            max_s -= 1
+    return olap >= t
+
+
 if __name__ == '__main__':
 
     parser = argparse.ArgumentParser(description='Get filename and threshold input.')
@@ -19,6 +72,7 @@ if __name__ == '__main__':
     # Use in verify: get String from M -> get list from string_to_list
     # -> use list normally.
     string_to_list = {}
+    res = []
 
     with open(args.input_file,'r') as input_file:
         full_file = input_file.readlines()
@@ -81,10 +135,9 @@ if __name__ == '__main__':
                 # I_r[p] = I_r[p] o r # Add set r to index
                 I[r[p]][1].append(r)
 
-            # Verify
-            # WATCH OUT: M contains s as string. Lookup in string_to_list returns
-            # required list
-            # res = res U  Verify(r,M,t_J)
+            if len(M) > 0:
+                # res = res U  Verify(r,M,t_J)
+                verify(r, M, args.jaccard_threshold)
 
     join_time_in_seconds = time.process_time() - reading_time
     output_size = 1
