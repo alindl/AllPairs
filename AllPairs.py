@@ -1,7 +1,7 @@
 import argparse
 import math
 import time
-
+import os
 
 def eqo(r,s,t):
     return ((t /(1+t))*(len(r.split()) + len(s.split())))
@@ -91,7 +91,8 @@ if __name__ == '__main__':
 
             # text line to array
             # TODO: read before algorithm starts
-            r = [int(x) for x in line.split()]
+            r = [int(x) for x in line.rstrip(os.linesep).split()]
+            
             string_to_list[line] = r
 
             # length_r = |r|
