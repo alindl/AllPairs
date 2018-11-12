@@ -15,11 +15,13 @@ def verify(r, M, t_j):
     # res = []
     res = 0
     # Key = list as a String, value = overlap
-    for key, olap in M.items():
+    # for key, olap in M.items():
+    for key in M.keys():
+        olap = M[key]
         # Initialize ret
-        ret = None
+        ret = False
         # Get list from stored String value
-        s = string_to_list.get(key)
+        # s = string_to_list.get(key)
         # Or don't
         s = R[key]
         pi_s = len(s) - math.ceil(lb_r) + 1
@@ -31,11 +33,11 @@ def verify(r, M, t_j):
         # Check which last token is larger
         # TODO pi_r + 1, olap + 1?
         # NO, we don't need + 1 because 0 indexing (I think)
-        # He said something like that, but I didn't wrote down a note that proofs that :(
+        # He said something like that, but I didn't write down a note that proofs that :(
         if w_r < w_s:
-            ret = ssjoin_verify(r, s, t, olap, pi_r + 1, olap + 1)
+            ret = ssjoin_verify(r, s, t, olap, pi_r, olap)
         else:
-            ret = ssjoin_verify(r, s, t, olap, olap + 1, pi_s + 1)
+            ret = ssjoin_verify(r, s, t, olap, olap, pi_s)
         if ret:
             # TODO union
             # We only need an integer value and not the actual sets
@@ -54,8 +56,8 @@ def ssjoin_verify(r, s, t, olap, p_r, p_s):
     while max_r >= t and max_s >= t and olap < t:
         # If there is a match, increase overlap and move to next token
         if r[p_r] == s[p_s]:
-            r += 1
-            s += 1
+            p_r += 1
+            p_s += 1
             olap += 1
         # Decrease max possible overlap for r, go to next r-token
         elif r[p_r] < s[p_s]:
@@ -169,12 +171,10 @@ if __name__ == '__main__':
                             # M_dict[s] = 0
                             M[s_index_in_S] = 0
                         # M_dict[s] = M_dict[s] + 1
-                        M[s_index_in_S] += M[s_index_in_S]
+                        M[s_index_in_S] += 1
             for p in range(piI_r - 1):
                 # I_r[p] = I_r[p] o r # Add set r to index
                 I[r[p]][1].append(r_index_in_R)
-                if I[r_p][0] is -1:
-                    I[r_p][0] = 0
 
 
 
@@ -182,7 +182,7 @@ if __name__ == '__main__':
                 # res = res U  Verify(r,M,t_J)
                 output_size += verify(r, M, args.jaccard_threshold)
 
-        r_index_in_R += 1
+            r_index_in_R += 1
 
     join_time_in_seconds = time.process_time() - reading_time
     print(output_size)
