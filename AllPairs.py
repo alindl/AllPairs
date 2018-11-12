@@ -6,9 +6,8 @@ import os
 def eqo(r,s,t):
     return ((t /(1+t))*(len(r) + len(s)))
 
-# WATCH OUT: M contains s as string. Lookup in string_to_list returns
-# required list
-# We don't do that, just look up s in R(=S)
+# WATCH OUT: M contains the position of s in R. Lookup in R returns
+# required list.
 # There is no actual lookup, just a get from array, so O(1)
 def verify(r, M, t_j):
 
@@ -21,8 +20,7 @@ def verify(r, M, t_j):
         # Initialize ret
         ret = False
         # Get list from stored String value
-        # s = string_to_list.get(key)
-        # Or don't
+        # s = R[key]
         s = R[key]
         pi_s = len(s) - math.ceil(lb_r) + 1
         # w_r - last token of r-prefix
@@ -78,11 +76,9 @@ if __name__ == '__main__':
     args = parser.parse_args()
 
     # required since lists cannot be dictionary keys. M defined as dictionary
-    # string -> counter.
-    # string_to_list maps the Strings to lists.
-    # Use in verify: get String from M -> get list from string_to_list
+    # integer -> counter.
+    # Use in verify: get integer from M -> get list from R
     # -> use list normally.
-    string_to_list = {}
     res = []
     output_size = 0
 
@@ -93,7 +89,7 @@ if __name__ == '__main__':
         # R[x] is the x-th line of the file
         # R[x][y] is the y-th number on the x-th line
         # Starting on 0 obviously
-        R = []        
+        R = []
 
         max_number = 0
 
@@ -109,8 +105,8 @@ if __name__ == '__main__':
 
         reading_time = time.process_time()
 
-        # I implemented as array with tuple and integer
-        # max_number = 5000  #determine while reading file
+        # I implemented as array in which entries are tuples containing an integer (counter)
+        # and a list of integers (positions of s in R)
 
         # Initialize array of tuples where every tuple contains a counter and a list for s
         # The list of s is actually a list of the positions in S(=R)
@@ -125,12 +121,6 @@ if __name__ == '__main__':
 
             # Key: candidate as position in R=S, Value: number of intersecting tokens found so far
             M = {}
-
-            # text line to array
-            # TODO: read before algorithm starts
-            # r = [int(x) for x in line.rstrip(os.linesep).split()]
-            
-            # string_to_list[line] = r
 
             # length_r = |r|
             length_r = len(r)
@@ -149,9 +139,9 @@ if __name__ == '__main__':
                 # for s in I_r[p]:
                 for pos_s in range(I[r_p][0], len(I[r_p][1])):
                     # r_p: p-th entry in r. I[r_p]: tuple in array for entry
-                    # I[r_p][1]: list of arrays in index
-                    # I[r_p][1][pos]: array at position pos. Actual s
-                    # s = I[r_p][1][pos_s]
+                    # I[r_p][1]: list of integers in index
+                    # I[r_p][1][pos]: integer at position pos. (position of s in R)
+                    # s = R[I[r_p][1][pos_s]] retrieve s from R.
                     s = R[I[r_p][1][pos_s]]
                     # s_index_in_S is the index of s in R(=S)
                     s_index_in_S = I[r_p][1][pos_s]
@@ -162,11 +152,7 @@ if __name__ == '__main__':
                         I[r_p][0] += 1
                     # else:
                     else:
-                        # create string to add to string_to_list
-                        # M indexed by s as string (list as key not possible)
-                        # s_str = ' '.join(str(e) for e in s)
                         # if s is not in M
-                        # if s_str not in M:
                         if s_index_in_S not in M:
                             # M_dict[s] = 0
                             M[s_index_in_S] = 0
