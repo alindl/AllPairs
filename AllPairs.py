@@ -110,7 +110,7 @@ if __name__ == '__main__':
 
         # Initialize array of tuples where every tuple contains a counter and a list for s
         # The list of s is actually a list of the positions in S(=R)
-        I = [[0, []] for _ in range(max_number)]
+        I = [[0, []] for _ in range(max_number + 1)]
         # -1 instead of 0 for the counter, to signal that it is empty
         # I = [[-1, []] for _ in range(max_number)]
 
