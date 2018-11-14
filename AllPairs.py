@@ -134,7 +134,14 @@ if __name__ == '__main__':
             # piI_r = |r| - roof(eqo(r,r)) + 1
             piI_r = length_r - math.ceil(eqo(r,r,args.jaccard_threshold)) + 1
 
-            for p in range(pi_r - 1):
+            # print("|r| = " + str(length_r))
+            # print("eqo(r,r) = " + str(eqo(r,r,args.jaccard_threshold)))
+            # print("lb_r = " + str(lb_r))
+            # print("pi_r = " + str(pi_r))
+            # print("piI_r = " + str(piI_r))
+            # print("-----------------------")
+
+            for p in range(pi_r):
                 r_p = r[p]
                 # for s in I_r[p]:
                 for pos_s in range(I[r_p][0], len(I[r_p][1])):
@@ -142,10 +149,11 @@ if __name__ == '__main__':
                     # I[r_p][1]: list of integers in index
                     # I[r_p][1][pos]: integer at position pos. (position of s in R)
                     # s = R[I[r_p][1][pos_s]] retrieve s from R.
-                    s = R[I[r_p][1][pos_s]]
+                    s = R[I[r_p][1][pos_s] - 1]
                     # s_index_in_S is the index of s in R(=S)
                     s_index_in_S = I[r_p][1][pos_s]
                     # if len(s) < lb_r:
+                    # print("Length of s = " + str(len(s)))
                     if len(s) < lb_r:
                         # remove index entry with s from I_r[p]
                         # Just add 1 to counter. Next lookup starts at counter
@@ -158,17 +166,35 @@ if __name__ == '__main__':
                             M[s_index_in_S] = 0
                         # M_dict[s] = M_dict[s] + 1
                         M[s_index_in_S] += 1
-            for p in range(piI_r - 1):
+            for p in range(piI_r):
                 # I_r[p] = I_r[p] o r # Add set r to index
-                I[r[p]][1].append(r_index_in_R)
-
+                I[r[p]][1].append(r_index_in_R + 1) # Because R starts at 0, but we should count from 1
 
 
             if len(M) > 0:
                 # res = res U  Verify(r,M,t_J)
                 output_size += verify(r, M, args.jaccard_threshold)
 
+            print("----------------- r_" + str(r_index_in_R + 1 ) + "-------------------") 
             r_index_in_R += 1
+            numkey = 1
+            print("######### Contents of M ##############")
+            for key in M.keys():
+                print("numKey = " + str(numkey))
+                print("key = " + str(key))
+
+                print("olap = " + str(M[key]))
+                numkey += 1
+
+            indexEntry = 0
+            print("========= Contents of I ==============")
+            for x in I:
+                print("indexEntry  = " + str(indexEntry))
+                print("count = " + str(x[0]))
+                for y in x[1]:
+                    print("Entries = " + str(y))
+                indexEntry += 1
+
 
     join_time_in_seconds = time.process_time() - reading_time
     print(output_size)
