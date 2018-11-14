@@ -21,12 +21,12 @@ def verify(r, M, t_j):
         ret = False
         # Get list from stored String value
         # s = R[key]
-        s = R[key]
-        pi_s = len(s) - math.ceil(lb_r) + 1
+        s = R[key - 1]
+        piI_s = len(s) - math.ceil(eqo(s,s,t_j)) + 1
         # w_r - last token of r-prefix
         w_r = r[pi_r - 1]
         # w_s - last token of s-prefix
-        w_s = s[pi_s - 1]
+        w_s = s[piI_s - 1]
         t = eqo(r, s, t_j)
         # Check which last token is larger
         # TODO pi_r + 1, olap + 1?
@@ -35,11 +35,12 @@ def verify(r, M, t_j):
         if w_r < w_s:
             ret = ssjoin_verify(r, s, t, olap, pi_r, olap)
         else:
-            ret = ssjoin_verify(r, s, t, olap, olap, pi_s)
+            ret = ssjoin_verify(r, s, t, olap, olap, piI_s)
         if ret:
             # TODO union
             # We only need an integer value and not the actual sets
             # res = r.union(s)
+            # print("THERE IS A CORRECT MATCH HERE!!!!")
             res += 1
     return res
 
@@ -81,6 +82,7 @@ if __name__ == '__main__':
     # -> use list normally.
     res = []
     output_size = 0
+    num_ver = 0
 
     with open(args.input_file,'r') as input_file:
         full_file = input_file.readlines()
@@ -144,7 +146,10 @@ if __name__ == '__main__':
             for p in range(pi_r):
                 r_p = r[p]
                 # for s in I_r[p]:
+                # print("entry of r = " + str(r_p))
+                # print("PLEASE " + str(len(I[r_p][1])))
                 for pos_s in range(I[r_p][0], len(I[r_p][1])):
+                    # print("PLEASE NOOOOO  " + str(I[r_p][1][pos_s]))
                     # r_p: p-th entry in r. I[r_p]: tuple in array for entry
                     # I[r_p][1]: list of integers in index
                     # I[r_p][1][pos]: integer at position pos. (position of s in R)
@@ -153,7 +158,7 @@ if __name__ == '__main__':
                     # s_index_in_S is the index of s in R(=S)
                     s_index_in_S = I[r_p][1][pos_s]
                     # if len(s) < lb_r:
-                    # print("Length of s = " + str(len(s)))
+                    num_ver += 1
                     if len(s) < lb_r:
                         # remove index entry with s from I_r[p]
                         # Just add 1 to counter. Next lookup starts at counter
@@ -172,29 +177,30 @@ if __name__ == '__main__':
 
 
             if len(M) > 0:
+                # print("Length of M = " + str(len(M)))
                 # res = res U  Verify(r,M,t_J)
                 output_size += verify(r, M, args.jaccard_threshold)
 
-            print("----------------- r_" + str(r_index_in_R + 1 ) + "-------------------") 
             r_index_in_R += 1
-            numkey = 1
-            print("######### Contents of M ##############")
-            for key in M.keys():
-                print("numKey = " + str(numkey))
-                print("key = " + str(key))
 
-                print("olap = " + str(M[key]))
-                numkey += 1
+            # print("----------------- r_" + str(r_index_in_R + 1 ) + "-------------------") 
+            # numkey = 1
+            # print("######### Contents of M ##############")
+            # for key in M.keys():
+            #     print("numKey = " + str(numkey))
+            #     print("key = " + str(key))
 
-            indexEntry = 0
-            print("========= Contents of I ==============")
-            for x in I:
-                print("indexEntry  = " + str(indexEntry))
-                print("count = " + str(x[0]))
-                for y in x[1]:
-                    print("Entries = " + str(y))
-                indexEntry += 1
+            #     print("olap = " + str(M[key]))
+            #     numkey += 1
 
+            # indexEntry = 0
+            # print("========= Contents of I ==============")
+            # for x in I:
+            #     print("indexEntry  = " + str(indexEntry))
+            #     print("count = " + str(x[0]))
+            #     for y in x[1]:
+            #         print("Entries = " + str(y))
+            #     indexEntry += 1
 
     join_time_in_seconds = time.process_time() - reading_time
     print(output_size)
