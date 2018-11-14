@@ -122,7 +122,7 @@ if __name__ == '__main__':
         for r in R:
 
             # Key: candidate as position in R=S, Value: number of intersecting tokens found so far
-            M = {}
+            M = {} 
 
             # length_r = |r|
             length_r = len(r)
@@ -174,6 +174,7 @@ if __name__ == '__main__':
             for p in range(piI_r):
                 # I_r[p] = I_r[p] o r # Add set r to index
                 I[r[p]][1].append(r_index_in_R + 1) # Because R starts at 0, but we should count from 1
+                # FIXME: Make more efficient, initialize before
 
 
             if len(M) > 0:
