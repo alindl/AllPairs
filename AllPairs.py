@@ -112,7 +112,7 @@ if __name__ == '__main__':
 
         # Initialize array of tuples where every tuple contains a counter and a list for s
         # The list of s is actually a list of the positions in S(=R)
-        I = [[0, []] for _ in range(max_number + 1)]
+        I = [[0, 0, [0] * (len(R))] for _ in range(max_number + 1)]
         # -1 instead of 0 for the counter, to signal that it is empty
         # I = [[-1, []] for _ in range(max_number)]
 
@@ -122,7 +122,7 @@ if __name__ == '__main__':
         for r in R:
 
             # Key: candidate as position in R=S, Value: number of intersecting tokens found so far
-            M = {} 
+            M = {}
 
             # length_r = |r|
             length_r = len(r)
@@ -148,15 +148,15 @@ if __name__ == '__main__':
                 # for s in I_r[p]:
                 # print("entry of r = " + str(r_p))
                 # print("PLEASE " + str(len(I[r_p][1])))
-                for pos_s in range(I[r_p][0], len(I[r_p][1])):
+                for pos_s in range(I[r_p][0], I[r_p][1]):
                     # print("PLEASE NOOOOO  " + str(I[r_p][1][pos_s]))
                     # r_p: p-th entry in r. I[r_p]: tuple in array for entry
                     # I[r_p][1]: list of integers in index
                     # I[r_p][1][pos]: integer at position pos. (position of s in R)
                     # s = R[I[r_p][1][pos_s]] retrieve s from R.
-                    s = R[I[r_p][1][pos_s] - 1]
+                    s = R[I[r_p][2][pos_s] - 1]
                     # s_index_in_S is the index of s in R(=S)
-                    s_index_in_S = I[r_p][1][pos_s]
+                    s_index_in_S = I[r_p][2][pos_s]
                     # if len(s) < lb_r:
                     num_ver += 1
                     if len(s) < lb_r:
@@ -173,7 +173,10 @@ if __name__ == '__main__':
                         M[s_index_in_S] += 1
             for p in range(piI_r):
                 # I_r[p] = I_r[p] o r # Add set r to index
-                I[r[p]][1].append(r_index_in_R + 1) # Because R starts at 0, but we should count from 1
+                # print(I[r[p]][1])
+                # print(len(I[r[p]][2]))
+                I[r[p]][2][I[r[p]][1]] = r_index_in_R + 1 # Because R starts at 0, but we should count from 1
+                I[r[p]][1] = I[r[p]][1] + 1
                 # FIXME: Make more efficient, initialize before
 
 
@@ -184,7 +187,7 @@ if __name__ == '__main__':
 
             r_index_in_R += 1
 
-            # print("----------------- r_" + str(r_index_in_R + 1 ) + "-------------------") 
+            # print("----------------- r_" + str(r_index_in_R + 1 ) + "-------------------")
             # numkey = 1
             # print("######### Contents of M ##############")
             # for key in M.keys():
