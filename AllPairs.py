@@ -10,13 +10,8 @@ import os
 # TODO Adapt length of probing and indexing prefix to take weight into account
 
 
-def compare(W, item1, item2):
-    if W[item1] > W[item2]:
-        return -1
-    elif W[item1] < W[item2]:
-        return 1
-    else:
-        return 0
+def key_function(token):
+    return W[token]
 
 
 def eqo(r,s,t):
@@ -123,29 +118,35 @@ if __name__ == '__main__':
                     max_number = int(x)
             R.append(list(r))
 
+
+    # map tokens to their weight. All not specified in weight
+    # file have weight 1.0
     W = [1.0 for _ in range(max_number + 1)]
+
+    # Define line-weights array : Array of 2 element tuples mapping a line's
+    # total weight to its position in R
+    line_weights = []
 
     with open(args.weight_file,'r') as weight_file:
         full_file = weight_file.readlines()
 
         for line in full_file:
-            split_line = line.rstrip(os.lineddsep).split(':')
+            split_line = line.rstrip(os.linesep).split(':')
             W[int(split_line[0])] = float(split_line[1])
 
+    ### Compare tokens by weight. Lines are sorted descendingly by token weight
+    ### + create line-weight -> linenumber mapping on the fly.
+    for i in range(len(R)):
+        R[i] = sorted(R[i], key=key_function, reverse=True)
+        weight_sum = 0
+        for token in R[i]:
+            weight_sum += W[token]
+        line_weights.append((weight_sum, i))
 
-    
-    ### TODO Compare tokens by weight
+    ### sort line-weights array ascendingly by weight in each tuple.
+    line_weights = sorted(line_weights, reverse=False)
 
-
-    
-
-
-
-
-
-
-
-    ### PREPROCESSING
+    ### PREPROCESSING END
 
     reading_time = time.process_time()
 
@@ -164,7 +165,7 @@ if __name__ == '__main__':
     for r in R:
 
         # Key: candidate as position in R=S, Value: number of intersecting tokens found so far
-        M = {} 
+        M = {}
 
         # length_r = |r|
         length_r = len(r)
@@ -226,7 +227,7 @@ if __name__ == '__main__':
 
         r_index_in_R += 1
 
-        # print("----------------- r_" + str(r_index_in_R + 1 ) + "-------------------") 
+        # print("----------------- r_" + str(r_index_in_R + 1 ) + "-------------------")
         # numkey = 1
         # print("######### Contents of M ##############")
         # for key in M.keys():
