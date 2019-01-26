@@ -141,7 +141,7 @@ if __name__ == '__main__':
         weight_sum = 0
         for token in R[i]:
             weight_sum += W[token]
-        line_weights.append((weight_sum, i))
+        line_weights.append((float(weight_sum), i))
 
     ### sort line-weights array ascendingly by weight in each tuple.
     line_weights = sorted(line_weights, reverse=False)
@@ -162,7 +162,10 @@ if __name__ == '__main__':
     # The position of r in R
     r_index_in_R = 0
 
-    for r in R:
+    t = args.jaccard_threshold
+
+    for weight_line_entry in line_weights:
+        r = R[weight_line_entry[1]]
 
         # Key: candidate as position in R=S, Value: number of intersecting tokens found so far
         M = {}
@@ -172,6 +175,29 @@ if __name__ == '__main__':
 
         # lb_r = t * |r|
         lb_r = args.jaccard_threshold * length_r
+
+        # l_p (page 17 in paper)
+        temp_weight_sum = 0
+        l_p = len(r) - 1
+        for position in range(len(r)):
+            temp_weight_sum += W[r[position]]
+            if((weight_line_entry[0] - temp_weight_sum) /
+                weight_line_entry[0] < t):
+
+                l_p = position
+                break
+
+        # l_i (page 17 in paper)
+        temp_weight_sum = 0
+        l_i = len(r) - 1
+        for position in range(len(r)):
+            temp_weight_sum += W[r[position]]
+            if((weight_line_entry[0] - temp_weight_sum) /
+               (weight_line_entry[0] + temp_weight_sum) < t):
+
+                l_i = position
+                break
+
 
         # pi_r = |r| - roof(lb_r) + 1
         pi_r = length_r - math.ceil(lb_r) + 1
