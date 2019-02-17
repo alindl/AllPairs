@@ -15,7 +15,7 @@ def key_function(token):
 
 
 def eqo(r,s,t):
-    return ((t /(1+t))*(len(r) + len(s)))
+    return ((t / (1+t))*(len(r) + len(s)))
 
 # WATCH OUT: M contains the position of s in R. Lookup in R returns
 # required list.
@@ -33,7 +33,8 @@ def verify(r, M, t_j):
         ret = False
         # Get list from stored String value
         # s = R[key]
-        s = R[key - 1]
+        s = R[key]
+
         piI_s = len(s) - math.ceil(eqo(s,s,t_j)) + 1
         # w_r - last token of r-prefix
         w_r = r[l_p - 1]
@@ -117,7 +118,6 @@ if __name__ == '__main__':
                     max_number = int(x)
             R.append(list(r))
 
-
     # map tokens to their weight. All not specified in weight
     # file have weight 1.0
     W = [1.0 for _ in range(max_number + 1)]
@@ -146,7 +146,7 @@ if __name__ == '__main__':
     line_weights = sorted(line_weights, reverse=False)
 
     # Define array mapping lines in R to their total weight
-    line_to_weight = [0 for _ in range(len(R) + 1)]
+    line_to_weight = [0 for _ in range(len(R))]
     for weight_line_entry in line_weights:
         line_to_weight[weight_line_entry[1]] = weight_line_entry[0]
 
@@ -167,27 +167,26 @@ if __name__ == '__main__':
     # The position of r in R
     r_index_in_R = 0
 
-    t = args.jaccard_threshold
+    t_in = args.jaccard_threshold
 
     for weight_line_entry in line_weights:
-        r = R[weight_line_entry[1]]
         r_index_in_R = weight_line_entry[1]
+        r = R[r_index_in_R]
 
         # Key: candidate as position in R=S, Value: number of intersecting tokens found so far
         M = {}
 
-
         # lb_r = t * |r|
-        lb_r = t * weight_line_entry[0]
+        lb_r = t_in * weight_line_entry[0]
         # l_p (page 17 in paper)
         temp_weight_sum = 0
         l_p = len(r) - 1
         for position in range(len(r)):
             temp_weight_sum += W[r[position]]
             if((weight_line_entry[0] - temp_weight_sum) /
-                weight_line_entry[0] < t):
+                weight_line_entry[0] < t_in):
 
-                l_p = position
+                l_p = position + 1
                 break
 
         # l_i (page 17 in paper)
@@ -196,9 +195,9 @@ if __name__ == '__main__':
         for position in range(len(r)):
             temp_weight_sum += W[r[position]]
             if((weight_line_entry[0] - temp_weight_sum) /
-               (weight_line_entry[0] + temp_weight_sum) < t):
+               (weight_line_entry[0] + temp_weight_sum) < t_in):
 
-                l_i = position
+                l_i = position + 1
                 break
 
         # pi_r = |r| - ceil(lb_r) + 1
@@ -224,13 +223,12 @@ if __name__ == '__main__':
                 # I[r_p][1]: list of integers in index
                 # I[r_p][1][pos]: integer at position pos. (position of s in R)
                 # s = R[I[r_p][1][pos_s]] retrieve s from R.
-                # s = R[I[r_p][1][pos_s] - 1]
                 # print("--------" + str(r_p))
                 # print(r)
                 # print(s)
                 # print("\n")
                 # s_index_in_S is the index of s in R(=S)
-                s_index_in_S = I[r_p][1][pos_s] - 1
+                s_index_in_S = I[r_p][1][pos_s]
                 # print(s)
                 # print(len(s))
                 # print(line_to_weight[s_index_in_S - 1])
@@ -249,14 +247,14 @@ if __name__ == '__main__':
                     # M_dict[s] = M_dict[s] + 1
                     M[s_index_in_S] += 1
 
-        for p in range(l_i) :
+        for p in range(l_i):
             # I_r[p] = I_r[p] o r # Add set r to index
-            I[r[p]][1].append(r_index_in_R + 1) # Because R starts at 0, but we should count from 1
+            I[r[p]][1].append(r_index_in_R)
 
         if len(M) > 0:
             # print("Length of M = " + str(len(M)))
             # res = res U  Verify(r,M,t_J)
-            output_size += verify(r, M, t)
+            output_size += verify(r, M, t_in)
 
         # print("----------------- r_" + str(r_index_in_R + 1 ) + "-------------------")
         # numkey = 1
