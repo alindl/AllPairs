@@ -36,7 +36,7 @@ def verify(r, M, t_j):
         s = R[key - 1]
         piI_s = len(s) - math.ceil(eqo(s,s,t_j)) + 1
         # w_r - last token of r-prefix
-        w_r = r[pi_r - 1]
+        w_r = r[l_p - 1]
         # w_s - last token of s-prefix
         w_s = s[piI_s - 1]
         t = eqo(r, s, t_j)
@@ -45,7 +45,7 @@ def verify(r, M, t_j):
         # NO, we don't need + 1 because 0 indexing (I think)
         # He said something like that, but I didn't write down a note that proofs that :(
         if w_r < w_s:
-            ret = ssjoin_verify(r, s, t, olap, pi_r, olap)
+            ret = ssjoin_verify(r, s, t, olap, l_p, olap)
         else:
             ret = ssjoin_verify(r, s, t, olap, olap, piI_s)
         if ret:
@@ -95,7 +95,6 @@ if __name__ == '__main__':
     # -> use list normally.
     res = []
     output_size = 0
-    num_ver = 0
     max_number = 0
     R = []
 
@@ -146,6 +145,12 @@ if __name__ == '__main__':
     ### sort line-weights array ascendingly by weight in each tuple.
     line_weights = sorted(line_weights, reverse=False)
 
+    # Define array mapping lines in R to their total weight
+    line_to_weight = [0 for _ in range(len(R) + 1)]
+    for weight_line_entry in line_weights:
+        line_to_weight[weight_line_entry[1]] = weight_line_entry[0]
+
+
     ### PREPROCESSING END
 
     reading_time = time.process_time()
@@ -166,16 +171,14 @@ if __name__ == '__main__':
 
     for weight_line_entry in line_weights:
         r = R[weight_line_entry[1]]
+        r_index_in_R = weight_line_entry[1]
 
         # Key: candidate as position in R=S, Value: number of intersecting tokens found so far
         M = {}
 
-        # length_r = |r|
-        length_r = len(r)
 
         # lb_r = t * |r|
-        lb_r = args.jaccard_threshold * length_r
-
+        lb_r = t * weight_line_entry[0]
         # l_p (page 17 in paper)
         temp_weight_sum = 0
         l_p = len(r) - 1
@@ -198,12 +201,11 @@ if __name__ == '__main__':
                 l_i = position
                 break
 
+        # pi_r = |r| - ceil(lb_r) + 1
+        #pi_r = length_r - math.ceil(lb_r) + 1
 
-        # pi_r = |r| - roof(lb_r) + 1
-        pi_r = length_r - math.ceil(lb_r) + 1
-
-        # piI_r = |r| - roof(eqo(r,r)) + 1
-        piI_r = length_r - math.ceil(eqo(r,r,args.jaccard_threshold)) + 1
+        # piI_r = |r| - ceil(eqo(r,r)) + 1
+        #piI_r = length_r - math.ceil(eqo(r,r,args.jaccard_threshold)) + 1
 
         # print("|r| = " + str(length_r))
         # print("eqo(r,r) = " + str(eqo(r,r,args.jaccard_threshold)))
@@ -211,8 +213,7 @@ if __name__ == '__main__':
         # print("pi_r = " + str(pi_r))
         # print("piI_r = " + str(piI_r))
         # print("-----------------------")
-
-        for p in range(pi_r):
+        for p in range(l_p):
             r_p = r[p]
             # for s in I_r[p]:
             # print("entry of r = " + str(r_p))
@@ -223,12 +224,19 @@ if __name__ == '__main__':
                 # I[r_p][1]: list of integers in index
                 # I[r_p][1][pos]: integer at position pos. (position of s in R)
                 # s = R[I[r_p][1][pos_s]] retrieve s from R.
-                s = R[I[r_p][1][pos_s] - 1]
+                # s = R[I[r_p][1][pos_s] - 1]
+                # print("--------" + str(r_p))
+                # print(r)
+                # print(s)
+                # print("\n")
                 # s_index_in_S is the index of s in R(=S)
-                s_index_in_S = I[r_p][1][pos_s]
-                # if len(s) < lb_r:
-                num_ver += 1
-                if len(s) < lb_r:
+                s_index_in_S = I[r_p][1][pos_s] - 1
+                # print(s)
+                # print(len(s))
+                # print(line_to_weight[s_index_in_S - 1])
+                # print("\n")
+                #print(line_to_weight[s_index_in_S - 1])
+                if line_to_weight[s_index_in_S] < lb_r:
                     # remove index entry with s from I_r[p]
                     # Just add 1 to counter. Next lookup starts at counter
                     I[r_p][0] += 1
@@ -240,18 +248,15 @@ if __name__ == '__main__':
                         M[s_index_in_S] = 0
                     # M_dict[s] = M_dict[s] + 1
                     M[s_index_in_S] += 1
-        for p in range(piI_r):
+
+        for p in range(l_i) :
             # I_r[p] = I_r[p] o r # Add set r to index
             I[r[p]][1].append(r_index_in_R + 1) # Because R starts at 0, but we should count from 1
-            # FIXME: Make more efficient, initialize before
-
 
         if len(M) > 0:
             # print("Length of M = " + str(len(M)))
             # res = res U  Verify(r,M,t_J)
-            output_size += verify(r, M, args.jaccard_threshold)
-
-        r_index_in_R += 1
+            output_size += verify(r, M, t)
 
         # print("----------------- r_" + str(r_index_in_R + 1 ) + "-------------------")
         # numkey = 1
