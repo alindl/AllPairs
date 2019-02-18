@@ -3,25 +3,22 @@ import math
 import time
 import os
 
-# TODO Input parameter for weight file W
-# TODO Summarize weight of tokens in every line of input file in an array X of tuples (sum_weight | line_number)
-# TODO Sort after sum of token weights in array X (increasing)
-# TODO Sort tokens in input file lines LN according to weights (decreasing)
-# TODO Adapt length of probing and indexing prefix to take weight into account
+# TODO figure out performance and correctness
 
-
-def key_function(token):
+def get_token_weight(token):
     return W[token]
 
+def get_line_weight(line_weight_entry):
+    return line_weight_entry[0]
 
 def eqo(r,s,t):
-    return ((t / (1+t))*(len(r) + len(s)))
+    return ((t / (1+t))*(r + s))
 
 # WATCH OUT: M contains the position of s in R. Lookup in R returns
 # required list.
 # There is no actual lookup, just a get from array, so O(1)
 
-def verify(r, M, t_j):
+def verify(r_index, M, t_j):
 
     # res = []
     res = 0
@@ -33,22 +30,22 @@ def verify(r, M, t_j):
         ret = False
         # Get list from stored String value
         # s = R[key]
-        s = R[key]
+        s_index = key
+        s_w = line_to_weight[s_index]
 
-        piI_s = len(s) - math.ceil(eqo(s,s,t_j)) + 1
+        piI_s = math.ceil(s_w - math.ceil(eqo(s_w,s_w,t_j)) + 1)
         # w_r - last token of r-prefix
-        w_r = r[l_p - 1]
+        w_r = R[r_index][l_p - 1]
         # w_s - last token of s-prefix
-        w_s = s[piI_s - 1]
-        t = eqo(r, s, t_j)
+        w_s = R[s_index][piI_s - 1]
+        t = eqo(line_to_weight[r_index], line_to_weight[s_index], t_j)
         # Check which last token is larger
         # TODO pi_r + 1, olap + 1?
-        # NO, we don't need + 1 because 0 indexing (I think)
-        # He said something like that, but I didn't write down a note that proofs that :(
+
         if w_r < w_s:
-            ret = ssjoin_verify(r, s, t, olap, l_p, olap)
+            ret = ssjoin_verify(r_index, s_index, t, olap, l_p, olap)
         else:
-            ret = ssjoin_verify(r, s, t, olap, olap, piI_s)
+            ret = ssjoin_verify(r_index, s_index, t, olap, olap, piI_s)
         if ret:
             # TODO union
             # We only need an integer value and not the actual sets
@@ -58,12 +55,14 @@ def verify(r, M, t_j):
     return res
 
 
-def ssjoin_verify(r, s, t, olap, p_r, p_s):
+def ssjoin_verify(r_index, s_index, t, olap, p_r, p_s):
 
     # max_r - max potential r-overlap
     # max-s - max potential s-overlap
-    max_r = len(r) - p_r + olap
-    max_s = len(s) - p_s + olap
+    max_r = line_to_weight[r_index] - p_r + olap
+    max_s = line_to_weight[s_index] - p_s + olap
+    r = R[r_index]
+    s = R[s_index]
 
     while max_r >= t and max_s >= t and olap < t:
         # If there is a match, increase overlap and move to next token
@@ -136,14 +135,14 @@ if __name__ == '__main__':
     ### Compare tokens by weight. Lines are sorted descendingly by token weight
     ### + create line-weight -> linenumber mapping on the fly.
     for i in range(len(R)):
-        R[i] = sorted(R[i], key=key_function, reverse=True)
+        R[i] = sorted(R[i], key=get_token_weight, reverse=True)
         weight_sum = 0
         for token in R[i]:
             weight_sum += W[token]
         line_weights.append((float(weight_sum), i))
 
     ### sort line-weights array ascendingly by weight in each tuple.
-    line_weights = sorted(line_weights, reverse=False)
+    line_weights = sorted(line_weights, key=get_line_weight, reverse=False)
 
     # Define array mapping lines in R to their total weight
     line_to_weight = [0 for _ in range(len(R))]
@@ -180,7 +179,7 @@ if __name__ == '__main__':
         lb_r = t_in * weight_line_entry[0]
         # l_p (page 17 in paper)
         temp_weight_sum = 0
-        l_p = len(r) - 1
+        l_p = 0
         for position in range(len(r)):
             temp_weight_sum += W[r[position]]
             if((weight_line_entry[0] - temp_weight_sum) /
@@ -189,9 +188,10 @@ if __name__ == '__main__':
                 l_p = position + 1
                 break
 
+
         # l_i (page 17 in paper)
         temp_weight_sum = 0
-        l_i = len(r) - 1
+        l_i = 0
         for position in range(len(r)):
             temp_weight_sum += W[r[position]]
             if((weight_line_entry[0] - temp_weight_sum) /
@@ -200,33 +200,14 @@ if __name__ == '__main__':
                 l_i = position + 1
                 break
 
-        # pi_r = |r| - ceil(lb_r) + 1
-        #pi_r = length_r - math.ceil(lb_r) + 1
 
-        # piI_r = |r| - ceil(eqo(r,r)) + 1
-        #piI_r = length_r - math.ceil(eqo(r,r,args.jaccard_threshold)) + 1
-
-        # print("|r| = " + str(length_r))
-        # print("eqo(r,r) = " + str(eqo(r,r,args.jaccard_threshold)))
-        # print("lb_r = " + str(lb_r))
-        # print("pi_r = " + str(pi_r))
-        # print("piI_r = " + str(piI_r))
-        # print("-----------------------")
         for p in range(l_p):
             r_p = r[p]
-            # for s in I_r[p]:
-            # print("entry of r = " + str(r_p))
-            # print("PLEASE " + str(len(I[r_p][1])))
+            #print(str(I[r_p][0]) +"     "+ str(len(I[r_p][1])))
             for pos_s in range(I[r_p][0], len(I[r_p][1])):
-                # print("PLEASE NOOOOO  " + str(I[r_p][1][pos_s]))
                 # r_p: p-th entry in r. I[r_p]: tuple in array for entry
                 # I[r_p][1]: list of integers in index
                 # I[r_p][1][pos]: integer at position pos. (position of s in R)
-                # s = R[I[r_p][1][pos_s]] retrieve s from R.
-                # print("--------" + str(r_p))
-                # print(r)
-                # print(s)
-                # print("\n")
                 # s_index_in_S is the index of s in R(=S)
                 s_index_in_S = I[r_p][1][pos_s]
                 # print(s)
@@ -251,10 +232,11 @@ if __name__ == '__main__':
             # I_r[p] = I_r[p] o r # Add set r to index
             I[r[p]][1].append(r_index_in_R)
 
+        #print(str(c) + "####" + str(d))
         if len(M) > 0:
             # print("Length of M = " + str(len(M)))
             # res = res U  Verify(r,M,t_J)
-            output_size += verify(r, M, t_in)
+            output_size += verify(r_index_in_R, M, t_in)
 
         # print("----------------- r_" + str(r_index_in_R + 1 ) + "-------------------")
         # numkey = 1
