@@ -46,7 +46,7 @@ def verify(r_index, M, t_j):
             ret = ssjoin_verify(r_index, s_index, t, olap, l_p, olap)
         else:
             # TODO verify this change
-            ret = ssjoin_verify(r_index, s_index, t, olap, l_p, piI_s)
+            ret = ssjoin_verify(r_index, s_index, t, olap, olap, piI_s)
         if ret:
             # TODO union
             # We only need an integer value and not the actual sets
